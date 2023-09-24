@@ -5,6 +5,7 @@ import jakarta.inject.Singleton;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
 
 @Singleton
@@ -27,11 +28,11 @@ public class MemoryDatabase {
         apelidos.add(pessoa.getApelido());
     }
 
-    public Pessoa findByTerm(String term) {
+    public List<Pessoa> findByTerm(String term) {
         return pessoas.values().stream()
                 .filter(p -> p.getTerm().toLowerCase().contains(term.toLowerCase()))
                 .limit(100)
-                .findFirst().orElse(null);
+                .toList();
     }
 
 }

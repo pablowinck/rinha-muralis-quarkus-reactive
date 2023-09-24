@@ -1,13 +1,21 @@
 package br.com.pablowinter;
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
-import jakarta.json.bind.annotation.JsonbTransient;
-import jakarta.persistence.*;
-
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 
 
 @Entity
@@ -19,18 +27,24 @@ import java.util.UUID;
 public class Pessoa extends PanacheEntityBase {
 
     @Id
+    @Column(columnDefinition = "varchar(36)")
     private String id;
 
+    @Column(columnDefinition = "varchar(32)")
     private String apelido;
 
+    @Column(columnDefinition = "varchar(100)")
     private String nome;
 
+    @Column(columnDefinition = "varchar(10)")
     private String nascimento;
 
     @Convert(converter = StringListConverter.class)
     @Column(columnDefinition = "text")
     private List<String> stack = Collections.emptyList();
 
+    @JsonIgnore
+    @Column(columnDefinition = "varchar(255)")
     private String term;
 
     public String getId() {
@@ -84,7 +98,7 @@ public class Pessoa extends PanacheEntityBase {
         this.stack = stack;
     }
 
-    @JsonbTransient
+    @JsonIgnore
     public boolean isUnprossessableEntity() {
         boolean empty = this.nome == null || this.apelido == null || this.apelido.isBlank();
         if (empty) return true;
@@ -93,6 +107,14 @@ public class Pessoa extends PanacheEntityBase {
         if (hasNullInStack()) return true;
         if (hasStackWithMoreThan32Characters()) return true;
         return isNascimentoInvalido();
+    }
+
+    @JsonIgnore
+    public boolean isBadRequest() {
+        var isNascimentoEmpty = this.nascimento != null && this.nascimento.isBlank();
+        if (isNascimentoEmpty) return true;
+        var isNascimentoTypeInvalid = this.nascimento != null && this.nascimento.split("-").length != 3;
+        return isNascimentoTypeInvalid;
     }
 
     private boolean hasNullInStack() {
@@ -112,7 +134,8 @@ public class Pessoa extends PanacheEntityBase {
         int ano = Integer.parseInt(split[0]);
         int mes = Integer.parseInt(split[1]);
         int dia = Integer.parseInt(split[2]);
-        if (ano < 1900 || ano > 2021) return true;
+        Calendar calendar = Calendar.getInstance();
+        if (ano < 1 || ano > calendar.get(Calendar.YEAR)) return true;
         if (mes < 1 || mes > 12) return true;
         if (dia < 1 || dia > 31) return true;
         if (mes == 2 && dia > 29) return true;
