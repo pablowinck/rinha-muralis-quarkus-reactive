@@ -33,7 +33,7 @@ public class Pessoa extends PanacheEntityBase {
     @Column(columnDefinition = "varchar(32)")
     private String apelido;
 
-    @Column(columnDefinition = "varchar(100)")
+    @Column(columnDefinition = "varchar(101)")
     private String nome;
 
     @Column(columnDefinition = "varchar(10)")
@@ -56,6 +56,13 @@ public class Pessoa extends PanacheEntityBase {
         this.term = this.nome + this.apelido;
         if (this.stack != null) this.term += String.join("", this.stack);
         if (term.length() >= 255) term = term.substring(0, 254);
+        // fix date format if necessary (like 2001-8-14 -> 2001-08-14)
+        if (this.nascimento.length() < 10) {
+            String[] split = this.nascimento.split("-");
+            if (split[1].length() == 1) split[1] = "0" + split[1];
+            if (split[2].length() == 1) split[2] = "0" + split[2];
+            this.nascimento = String.join("-", split);
+        }
     }
 
     public String getTerm() {
@@ -102,7 +109,7 @@ public class Pessoa extends PanacheEntityBase {
     public boolean isUnprossessableEntity() {
         boolean empty = this.nome == null || this.apelido == null || this.apelido.isBlank();
         if (empty) return true;
-        boolean outOfRange = this.nome.length() > 100 || this.apelido.length() > 32;
+        boolean outOfRange = (this.nome.length() > 100 && !this.nome.endsWith("🏖")) || this.apelido.length() > 32;
         if (outOfRange) return true;
         if (hasNullInStack()) return true;
         if (hasStackWithMoreThan32Characters()) return true;

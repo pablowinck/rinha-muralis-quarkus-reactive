@@ -43,6 +43,8 @@ public class PessoaController {
         Pessoa pessoa = jsonObject.mapTo(Pessoa.class);
         if (pessoa.getNascimento() == null)
             return Uni.createFrom().item(Response.status(422).build());
+        if (pessoa.getNascimento().length() != 10 || pessoa.getNascimento().split("-").length != 3)
+            return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isBadRequest())
             return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isUnprossessableEntity())
