@@ -135,9 +135,7 @@ public class Pessoa extends PanacheEntityBase {
     }
 
     private boolean isNascimentoInvalido() {
-        if (this.nascimento == null || this.nascimento.isBlank()) return false;
         String[] split = this.nascimento.split("-");
-        if (split.length != 3) return true;
         int ano = Integer.parseInt(split[0]);
         int mes = Integer.parseInt(split[1]);
         int dia = Integer.parseInt(split[2]);
