@@ -38,6 +38,8 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(400).build());
         if (fieldIsTypeIncorrect(jsonObject, "stack", JsonArray.class))
             return Uni.createFrom().item(Response.status(400).build());
+        if (stackHasTypeNullInArray(jsonObject))
+            return Uni.createFrom().item(Response.status(422).build());
         if (stackHasTypeInvalidInArray(jsonObject))
             return Uni.createFrom().item(Response.status(400).build());
         Pessoa pessoa = jsonObject.mapTo(Pessoa.class);
@@ -70,6 +72,13 @@ public class PessoaController {
     private boolean stackIsASingleObject(JsonObject jsonObject) {
         return jsonObject.containsKey("stack") && jsonObject.getValue("stack") != null
                 && jsonObject.getValue("stack") instanceof JsonObject;
+    }
+
+    private boolean stackHasTypeNullInArray(JsonObject jsonObject) {
+        if (!jsonObject.containsKey("stack") || jsonObject.getValue("stack") == null)
+            return false;
+        return jsonObject.getJsonArray("stack").stream()
+                .anyMatch(value -> value == null);
     }
 
     private boolean stackHasTypeInvalidInArray(JsonObject jsonObject) {

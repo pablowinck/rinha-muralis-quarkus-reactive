@@ -1,0 +1,1 @@
+quarkus build --native -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=docker

@@ -107,8 +107,6 @@ public class Pessoa extends PanacheEntityBase {
 
     @JsonIgnore
     public boolean isUnprossessableEntity() {
-        boolean empty = this.nome == null || this.apelido == null || this.apelido.isBlank();
-        if (empty) return true;
         boolean outOfRange = (this.nome.length() > 100 && !this.nome.endsWith("🏖")) || this.apelido.length() > 32;
         if (outOfRange) return true;
         if (hasNullInStack()) return true;
