@@ -121,7 +121,8 @@ public class PessoaController {
         List<Pessoa> pessoasInMemory = memoryDatabase.findByTerm(term);
         if (!pessoasInMemory.isEmpty())
             return Uni.createFrom().item(Response.ok(pessoasInMemory).build());
-        return Pessoa.<Pessoa>find("UPPER(term) like UPPER(?1)", "%" + term + "%").list()
+        return Pessoa.<Pessoa>find("UPPER(term) like UPPER(?1)", "%" + term + "%")
+                .page(0, 100).list()
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build);
     }

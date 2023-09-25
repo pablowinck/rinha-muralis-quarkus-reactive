@@ -31,6 +31,7 @@ public class MemoryDatabase {
     public synchronized List<Pessoa> findByTerm(String term) {
         return pessoas.values().stream()
                 .filter(p -> p.getTerm().toLowerCase().contains(term.toLowerCase()))
+                .limit(100)
                 .toList();
     }
 
