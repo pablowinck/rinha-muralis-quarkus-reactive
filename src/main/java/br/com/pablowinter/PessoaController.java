@@ -105,7 +105,7 @@ public class PessoaController {
     @Path("/pessoas")
     @Produces(MediaType.APPLICATION_JSON)
     @WithSession
-    public Uni<Response> find100ByTerm(@QueryParam("t") String term) {
+    public Uni<Response> find20ByTerm(@QueryParam("t") String term) {
         if (term == null || term.isBlank()) {
             return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
         }
@@ -113,7 +113,7 @@ public class PessoaController {
         if (!pessoasInMemory.isEmpty())
             return Uni.createFrom().item(Response.ok(pessoasInMemory).build());
         return Pessoa.<Pessoa>find("UPPER(term) like UPPER(?1)", "%" + term + "%")
-                .page(0, 100).list()
+                .page(0, 20).list()
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build);
     }

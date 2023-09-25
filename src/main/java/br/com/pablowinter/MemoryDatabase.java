@@ -28,10 +28,10 @@ public class MemoryDatabase {
         apelidos.add(pessoa.getApelido());
     }
 
-    public List<Pessoa> findByTerm(String term) {
+    public synchronized List<Pessoa> findByTerm(String term) {
         return pessoas.values().stream()
                 .filter(p -> p.getTerm().toLowerCase().contains(term.toLowerCase()))
-                .limit(100)
+                .limit(20)
                 .toList();
     }
 

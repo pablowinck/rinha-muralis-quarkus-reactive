@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   api1: # API - Instância 01
-    image: pablowinck/rinha-quarkus-reactive:1.4
+    image: pablowinck/rinha-quarkus-reactive:2.1
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
@@ -18,7 +18,7 @@ services:
           memory: "0.3GB"
 
   api2: # API - Instância 02
-    image: pablowinck/rinha-quarkus-reactive:1.4
+    image: pablowinck/rinha-quarkus-reactive:2.1
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
@@ -35,7 +35,7 @@ services:
           memory: "0.3GB"
 
   nginx: # Load Balancer
-    image: pablowinck/custom-ngnix:1.1
+    image: pablowinck/custom-ngnix:1.2
     depends_on:
       - api1
       - api2
