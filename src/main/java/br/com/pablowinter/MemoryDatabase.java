@@ -12,8 +12,8 @@ import java.util.Set;
 @Startup
 public class MemoryDatabase {
 
-    private final Set<String> apelidos = new HashSet<>(10_000);
-    private final LinkedHashMap<String, Pessoa> pessoas = new LinkedHashMap<>(10_000);
+    private final Set<String> apelidos = new HashSet<>(100_000);
+    private final LinkedHashMap<String, Pessoa> pessoas = new LinkedHashMap<>(100_000);
 
     public boolean existsByApelido(String apelido) {
         return apelidos.contains(apelido);
@@ -31,7 +31,6 @@ public class MemoryDatabase {
     public synchronized List<Pessoa> findByTerm(String term) {
         return pessoas.values().stream()
                 .filter(p -> p.getTerm().toLowerCase().contains(term.toLowerCase()))
-                .limit(20)
                 .toList();
     }
 

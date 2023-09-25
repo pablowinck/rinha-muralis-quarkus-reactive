@@ -1,0 +1,7 @@
+- [ ] sem memory db na filtragem por termo
+- [ ] aumentar recurso do load balancer
+- [ ] corrigir insights do build do quarkus
+- [ ] testar sem micro native
+- [ ] retirar dependencias inutilizaveis do pom.xml
+- [ ] testar com redis ao inves de memory db
+- [ ] retirar drop and create e subir no init.sql o banco com index
