@@ -41,7 +41,7 @@ public class Pessoa extends PanacheEntityBase {
 
     @Convert(converter = StringListConverter.class)
     @Column(columnDefinition = "text")
-    private List<String> stack = Collections.emptyList();
+    private List<String> stack;
 
     @JsonIgnore
     @Column(columnDefinition = "varchar(255)")

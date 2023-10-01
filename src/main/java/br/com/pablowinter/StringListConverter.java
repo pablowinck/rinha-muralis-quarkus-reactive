@@ -12,15 +12,21 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
 
     @Override
     public String convertToDatabaseColumn(List<String> attribute) {
-        if (attribute == null || attribute.isEmpty()) {
+        if (attribute == null) {
             return null;
+        }
+        if (attribute.isEmpty()) {
+            return "e";
         }
         return String.join(",", attribute);
     }
 
     @Override
     public List<String> convertToEntityAttribute(String dbData) {
-        if (dbData == null || dbData.isEmpty()) {
+        if (dbData == null) {
+            return null;
+        }
+        if (dbData.equals("e")) {
             return Collections.emptyList();
         }
         return Arrays.asList(dbData.split(","));

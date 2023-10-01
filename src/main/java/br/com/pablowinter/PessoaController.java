@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.WithSession;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -119,12 +120,25 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
         }
         List<Pessoa> pessoasInMemory = memoryDatabase.findByTerm(term);
-        if (!pessoasInMemory.isEmpty())
-            return Uni.createFrom().item(Response.ok(pessoasInMemory).build());
+        if (pessoasInMemory != null && !pessoasInMemory.isEmpty() && pessoasInMemory.size() > 25) {
+            return multiplyList(pessoasInMemory).toUni()
+                    .onItem().transform(Response::ok)
+                    .onItem().transform(Response.ResponseBuilder::build);
+        }
         return Pessoa.<Pessoa>find("UPPER(term) like UPPER(?1)", "%" + term + "%")
                 .page(0, 100).list()
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build);
+    }
+
+    private Multi<List<Pessoa>> multiplyList(List<Pessoa> entity) {
+        if (entity.size() > 100) {
+            return Multi.createFrom().items(entity);
+        }
+        if (entity.size() > 50) {
+            return Multi.createFrom().items(entity, entity);
+        }
+        return Multi.createFrom().items(entity, entity, entity, entity, entity);
     }
 
 }
