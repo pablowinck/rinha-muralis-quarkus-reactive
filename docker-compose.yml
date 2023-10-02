@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   api1: # API - Instância 01
-    image: pablowinck/rinha-quarkus-reactive:2.6.3
+    image: pablowinck/rinha-quarkus-reactive:2.6.4
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
@@ -19,7 +19,7 @@ services:
           memory: "0.3GB"
 
   api2: # API - Instância 02
-    image: pablowinck/rinha-quarkus-reactive:2.6.3
+    image: pablowinck/rinha-quarkus-reactive:2.6.4
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
