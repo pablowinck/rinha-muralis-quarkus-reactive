@@ -1,21 +1,17 @@
 package br.com.pablowinter;
 
-import java.util.List;
-
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.WithSession;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.List;
+import java.util.Objects;
 
 @Path("/")
 public class PessoaController {
@@ -28,6 +24,7 @@ public class PessoaController {
     @POST
     @Path("/pessoas")
     @Produces(MediaType.APPLICATION_JSON)
+    @WithSession
     public Uni<Response> insert(JsonObject jsonObject) {
         if (FIELDS.stream()
                 .anyMatch(field -> fieldIsUndefinedOrNull(jsonObject, field)))
@@ -52,13 +49,23 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isUnprossessableEntity())
             return Uni.createFrom().item(Response.status(422).build());
-        if (memoryDatabase.existsByApelido(pessoa.getApelido()))
-            return Uni.createFrom().item(Response.status(422).build());
-        pessoa.prepareToPersist();
-        memoryDatabase.save(pessoa);
-        return Panache.withTransaction(pessoa::persist)
-                .replaceWith(Response.ok().status(201)
-                        .header("Location", "/pessoas/" + pessoa.getId()).build());
+        return memoryDatabase.existsByApelido(pessoa.getApelido())
+                .onItem().ifNotNull().transformToUni(exists -> {
+                    if (exists) {
+                        return Uni.createFrom().item(Response.status(422).build());
+                    }
+                    return pessoa.find("apelido", pessoa.getApelido()).count()
+                            .onItem().ifNotNull().transformToUni(count -> {
+                                if (count > 0)
+                                    return Uni.createFrom().item(Response.status(422).build());
+                                pessoa.prepareToPersist();
+                                return memoryDatabase.save(pessoa)
+                                        .onItem()
+                                        .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
+                                                .replaceWith(Response.ok().status(201)
+                                                        .header("Location", "/pessoas/" + pessoa.getId()).build()));
+                            });
+                });
     }
 
     private boolean fieldIsUndefinedOrNull(JsonObject jsonObject, String field) {
@@ -79,7 +86,7 @@ public class PessoaController {
         if (!jsonObject.containsKey("stack") || jsonObject.getValue("stack") == null)
             return false;
         return jsonObject.getJsonArray("stack").stream()
-                .anyMatch(value -> value == null);
+                .anyMatch(Objects::isNull);
     }
 
     private boolean stackHasTypeInvalidInArray(JsonObject jsonObject) {
@@ -96,12 +103,11 @@ public class PessoaController {
     public Uni<Response> findById(String id) {
         if (id == null || id.isBlank())
             return Uni.createFrom().item(Response.status(400).build());
-        Pessoa pessoaInMemory = memoryDatabase.getPessoa(id);
-        if (pessoaInMemory != null)
-            return Uni.createFrom().item(Response.ok(pessoaInMemory).build());
-        return Pessoa.findById(id)
-                .onItem().transform(p -> p != null ? Response.ok(p) : Response.status(404))
-                .onItem().transform(Response.ResponseBuilder::build);
+        return memoryDatabase.getPessoa(id)
+                .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
+                .onItem().ifNull().switchTo(Pessoa.findById(id)
+                        .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
+                        .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build));
     }
 
     @GET
@@ -119,26 +125,10 @@ public class PessoaController {
         if (term == null || term.isBlank()) {
             return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
         }
-        List<Pessoa> pessoasInMemory = memoryDatabase.findByTerm(term);
-        if (pessoasInMemory != null && !pessoasInMemory.isEmpty() && pessoasInMemory.size() > 25) {
-            return multiplyList(pessoasInMemory).toUni()
-                    .onItem().transform(Response::ok)
-                    .onItem().transform(Response.ResponseBuilder::build);
-        }
         return Pessoa.<Pessoa>find("UPPER(term) like UPPER(?1)", "%" + term + "%")
                 .page(0, 100).list()
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build);
-    }
-
-    private Multi<List<Pessoa>> multiplyList(List<Pessoa> entity) {
-        if (entity.size() > 100) {
-            return Multi.createFrom().items(entity);
-        }
-        if (entity.size() > 50) {
-            return Multi.createFrom().items(entity, entity);
-        }
-        return Multi.createFrom().items(entity, entity, entity, entity, entity);
     }
 
 }

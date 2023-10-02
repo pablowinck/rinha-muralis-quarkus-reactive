@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
@@ -18,7 +19,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pessoas", indexes = {
-        @Index(name = "idx_pessoas_term", columnList = "term")
+        @Index(name = "idx_pessoas_term", columnList = "term"),
+        @Index(name = "idx_pessoas_apelido", columnList = "apelido"),
 })
 @Cacheable
 public class Pessoa extends PanacheEntityBase {
@@ -45,7 +47,7 @@ public class Pessoa extends PanacheEntityBase {
     private String term;
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public void prepareToPersist() {
@@ -164,6 +166,15 @@ public class Pessoa extends PanacheEntityBase {
 
     private boolean yearFebruaryHas29Days(int ano) {
         return ano % 4 == 0 && ano % 100 != 0 || ano % 400 == 0;
+    }
+
+    public static Pessoa fromJson(String json) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(json, Pessoa.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }
