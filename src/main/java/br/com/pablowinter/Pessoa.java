@@ -1,7 +1,6 @@
 package br.com.pablowinter;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
