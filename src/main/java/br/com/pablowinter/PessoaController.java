@@ -49,22 +49,16 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isUnprossessableEntity())
             return Uni.createFrom().item(Response.status(422).build());
-        return memoryDatabase.existsByApelido(pessoa.getApelido())
-                .onItem().ifNotNull().transformToUni(exists -> {
-                    if (exists) {
+        return Pessoa.find("apelido", pessoa.getApelido()).count()
+                .onItem().ifNotNull().transformToUni(count -> {
+                    if (count > 0)
                         return Uni.createFrom().item(Response.status(422).build());
-                    }
-                    return pessoa.find("apelido", pessoa.getApelido()).count()
-                            .onItem().ifNotNull().transformToUni(count -> {
-                                if (count > 0)
-                                    return Uni.createFrom().item(Response.status(422).build());
-                                pessoa.prepareToPersist();
-                                return memoryDatabase.save(pessoa)
-                                        .onItem()
-                                        .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
-                                                .replaceWith(Response.ok().status(201)
-                                                        .header("Location", "/pessoas/" + pessoa.getId()).build()));
-                            });
+                    pessoa.prepareToPersist();
+                    return memoryDatabase.save(pessoa)
+                            .onItem()
+                            .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
+                                    .replaceWith(Response.ok().status(201)
+                                            .header("Location", "/pessoas/" + pessoa.getId()).build()));
                 });
     }
 
@@ -103,7 +97,7 @@ public class PessoaController {
     public Uni<Response> findById(String id) {
         if (id == null || id.isBlank())
             return Uni.createFrom().item(Response.status(400).build());
-        return memoryDatabase.getPessoa(id)
+        return memoryDatabase.findById(id)
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
                 .onItem().ifNull().switchTo(Pessoa.findById(id)
                         .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
