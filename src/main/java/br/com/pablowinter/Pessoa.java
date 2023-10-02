@@ -41,7 +41,7 @@ public class Pessoa extends PanacheEntityBase {
     private List<String> stack;
 
     @JsonIgnore
-    @Column(columnDefinition = "varchar(255)")
+    @Column(columnDefinition = "text")
     private String term;
 
     public String getId() {
@@ -53,8 +53,6 @@ public class Pessoa extends PanacheEntityBase {
         this.term = this.nome + "_" + this.apelido + "_";
         if (this.stack != null)
             this.term += String.join("_", this.stack);
-        if (term.length() >= 255)
-            term = term.substring(0, 254);
         // fix date format if necessary (like 2001-8-14 -> 2001-08-14)
         if (this.nascimento.length() < 10) {
             String[] split = this.nascimento.split("-");
