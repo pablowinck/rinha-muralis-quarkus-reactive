@@ -3,11 +3,13 @@ services:
   api1: &api1
     image: pablowinck/rinha-quarkus-reactive:2.6.5
     environment:
-      DATABASE_URL: vertx-reactive:postgresql://localhost:5432/root?schema=public
+      DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: 2309
       SERVER_PORT: 3000
-      REDIS_HOST: redis://localhost:6379
+      REDIS_HOST: redis://redis:6379
+    expose:
+      - 3000
     depends_on:
       db:
         condition: service_healthy
@@ -16,23 +18,25 @@ services:
         limits:
           cpus: "0.2"
           memory: 300M
-    network_mode: "host"
 
   api2:
     <<: *api1
     environment:
-      DATABASE_URL: vertx-reactive:postgresql://localhost:5432/root?schema=public
+      DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: 2309
       SERVER_PORT: 3001
-      REDIS_HOST: redis://localhost:6379
+      REDIS_HOST: redis://redis:6379
+    expose:
+      - 3001
 
   nginx: # Load Balancer
-    image: pablowinck/custom-ngnix:1.4
-    network_mode: host
+    image: pablowinck/custom-ngnix:1.5
     depends_on:
       - api1
       - api2
+    ports:
+      - "9999:9999"
     deploy:
       resources:
         limits:
@@ -41,10 +45,10 @@ services:
 
   db: # Banco de dados
     image: pablowinck/custom-postgres:1.2
-    hostname: db
-    network_mode: host
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,8 +67,8 @@ services:
 
   redis:
     image: redis:latest
-    hostname: redis
-    network_mode: host
+    ports:
+      - "6379:6379"
     command: redis-server --save "" --appendonly no --maxclients 20000
     deploy:
       resources:
