@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   api1: &api1
-    image: pablowinck/rinha-quarkus-reactive:2.6.9
+    image: pablowinck/rinha-quarkus-reactive:2.7.2
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
