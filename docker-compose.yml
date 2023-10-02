@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   api1: &api1
-    image: pablowinck/rinha-quarkus-reactive:2.7.2
+    image: pablowinck/rinha-quarkus-reactive:2.7.3
     environment:
       DATABASE_URL: vertx-reactive:postgresql://db:5432/root?schema=public
       DATABASE_USERNAME: postgres
@@ -15,7 +15,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"
+          cpus: "0.25"
           memory: 500M
 
   api2:
@@ -38,7 +38,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"
+          cpus: "0.1"
           memory: 500M
 
   db: # Banco de dados
