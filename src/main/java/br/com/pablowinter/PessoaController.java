@@ -16,10 +16,10 @@ import java.util.Objects;
 @Path("/")
 public class PessoaController {
 
+    private static final List<String> FIELDS = List.of("apelido", "nome", "nascimento");
+
     @Inject
     MemoryDatabase memoryDatabase;
-
-    private static final List<String> FIELDS = List.of("apelido", "nome", "nascimento");
 
     @POST
     @Path("/pessoas")
@@ -49,22 +49,15 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isUnprossessableEntity())
             return Uni.createFrom().item(Response.status(422).build());
-        return memoryDatabase.existsByApelido(pessoa.getApelido())
-                .onItem().ifNotNull().transformToUni(exists -> {
-                    if (exists) {
+        return Pessoa.find("apelido", pessoa.getApelido()).count()
+                .onItem().ifNotNull().transformToUni(count -> {
+                    if (count > 0)
                         return Uni.createFrom().item(Response.status(422).build());
-                    }
-                    return pessoa.find("apelido", pessoa.getApelido()).count()
-                            .onItem().ifNotNull().transformToUni(count -> {
-                                if (count > 0)
-                                    return Uni.createFrom().item(Response.status(422).build());
-                                pessoa.prepareToPersist();
-                                return memoryDatabase.save(pessoa)
-                                        .onItem()
-                                        .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
-                                                .replaceWith(Response.ok().status(201)
-                                                        .header("Location", "/pessoas/" + pessoa.getId()).build()));
-                            });
+                    pessoa.prepareToPersist();
+                    memoryDatabase.save(pessoa);
+                    return Panache.withTransaction(pessoa::persist)
+                            .replaceWith(Response.ok().status(201)
+                                    .header("Location", "/pessoas/" + pessoa.getId()).build());
                 });
     }
 
@@ -103,11 +96,12 @@ public class PessoaController {
     public Uni<Response> findById(String id) {
         if (id == null || id.isBlank())
             return Uni.createFrom().item(Response.status(400).build());
-        return memoryDatabase.getPessoa(id)
+        Pessoa pessoa = memoryDatabase.findById(id);
+        if (pessoa != null)
+            return Uni.createFrom().item(Response.ok(pessoa).build());
+        return Pessoa.findById(id)
                 .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
-                .onItem().ifNull().switchTo(Pessoa.findById(id)
-                        .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
-                        .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build));
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND)::build);
     }
 
     @GET
