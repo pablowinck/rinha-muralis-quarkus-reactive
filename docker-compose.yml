@@ -29,7 +29,7 @@ services:
       - 3001
 
   nginx: # Load Balancer
-    image: pablowinck/custom-ngnix:1.6
+    image: pablowinck/custom-ngnix:1.7.2
     depends_on:
       - api1
       - api2
@@ -42,7 +42,7 @@ services:
           memory: 500M
 
   db: # Banco de dados
-    image: pablowinck/custom-postgres:1.2
+    image: pablowinck/custom-postgres:1.3
     ports:
       - "5432:5432"
     healthcheck:
