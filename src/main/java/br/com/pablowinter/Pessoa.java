@@ -45,16 +45,12 @@ public class Pessoa extends PanacheEntityBase {
     private String term;
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public void prepareToPersist() {
         this.id = UUID.randomUUID().toString();
-        this.term = this.nome + "_" + this.apelido + "_";
-        if (this.stack != null)
-            this.term += String.join("_", this.stack);
-        if (term.length() >= 255)
-            term = term.substring(0, 254);
+        this.term = buildTerm();
         // fix date format if necessary (like 2001-8-14 -> 2001-08-14)
         if (this.nascimento.length() < 10) {
             String[] split = this.nascimento.split("-");
@@ -64,6 +60,16 @@ public class Pessoa extends PanacheEntityBase {
                 split[2] = "0" + split[2];
             this.nascimento = String.join("-", split);
         }
+    }
+
+    @JsonIgnore
+    public String buildTerm() {
+        String localTerm = this.nome + "_" + this.apelido + "_";
+        if (this.stack != null)
+            localTerm += String.join("_", this.stack);
+        if (localTerm.length() >= 255)
+            localTerm = localTerm.substring(0, 254);
+        return localTerm;
     }
 
     public String getTerm() {

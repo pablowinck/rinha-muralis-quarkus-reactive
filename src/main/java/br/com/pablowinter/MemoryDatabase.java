@@ -1,38 +1,43 @@
 package br.com.pablowinter;
 
 import io.quarkus.runtime.Startup;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Singleton;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 @Startup
 public class MemoryDatabase {
 
-    private final Set<String> apelidos = new HashSet<>(100_000);
-    private final LinkedHashMap<String, Pessoa> pessoas = new LinkedHashMap<>(100_000);
+    private final Set<String> apelidos = ConcurrentHashMap.newKeySet(100_000);
+    private final ConcurrentHashMap<String, Pessoa> pessoas = new ConcurrentHashMap<>(100_000);
 
-    public boolean existsByApelido(String apelido) {
-        return apelidos.contains(apelido);
+    public Uni<Boolean> existsByApelido(String apelido) {
+        return Uni.createFrom().item(() -> apelidos.contains(apelido));
     }
 
-    public Pessoa getPessoa(String id) {
-        return pessoas.get(id);
+    public Uni<Pessoa> getPessoa(String id) {
+        return Uni.createFrom().item(() -> pessoas.get(id));
     }
 
-    public synchronized void save(Pessoa pessoa) {
-        pessoas.put(pessoa.getId(), pessoa);
-        apelidos.add(pessoa.getApelido());
+    public Uni<Void> save(Pessoa pessoa) {
+        return Uni.createFrom().item(() -> {
+            apelidos.add(pessoa.getApelido());
+            pessoas.put(pessoa.getId(), pessoa);
+            return null;
+        });
     }
 
-    public synchronized List<Pessoa> findByTerm(String term) {
-        return pessoas.values().stream()
-                .filter(p -> p.getTerm().toLowerCase().contains(term.toLowerCase()))
-                .limit(100)
-                .toList();
+    public Multi<Pessoa> findByTerm(String term) {
+        if (term == null || term.isBlank())
+            return Multi.createFrom().nothing();
+        return Multi.createFrom().items(pessoas.values().stream()
+                .filter(pessoa -> pessoa.buildTerm().toLowerCase().contains(term.toLowerCase()))
+                .toArray(Pessoa[]::new));
     }
+
 
 }

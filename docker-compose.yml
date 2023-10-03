@@ -15,8 +15,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "0.5GB"
+          cpus: "0.17"
+          memory: "0.3GB"
 
   api2: # API - Instância 02
     image: pablowinck/rinha-quarkus-reactive:2.6.4-Final
@@ -33,8 +33,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "0.5GB"
+          cpus: "0.70"
+          memory: "0.7GB"
 
   nginx: # Load Balancer
     image: pablowinck/custom-ngnix:1.7.2
@@ -46,8 +46,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
-          memory: "0.3GB"
+          cpus: "0.38"
+          memory: "0.5GB"
 
   db: # Banco de dados
     image: pablowinck/custom-postgres:1.3
@@ -67,7 +67,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.9"
-          memory: "1.7GB"
+          cpus: "0.25"
+          memory: "1.5GB"
 ## 1.5 CPU
 ## 3 GB
