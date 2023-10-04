@@ -18,7 +18,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pessoas", indexes = {
-        @Index(name = "idx_pessoas_term", columnList = "term")
+        @Index(name = "idx_pessoas_term", columnList = "term"),
+        @Index(name = "idx_pessoas_apelido", columnList = "apelido", unique = true)
 })
 @Cacheable
 public class Pessoa extends PanacheEntityBase {

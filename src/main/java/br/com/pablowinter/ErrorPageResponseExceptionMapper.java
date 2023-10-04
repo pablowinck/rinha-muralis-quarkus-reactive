@@ -8,7 +8,6 @@ import jakarta.ws.rs.ext.Provider;
 public class ErrorPageResponseExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
-        exception.printStackTrace();
         return Response.status(400).entity("").build();
     }
 }
