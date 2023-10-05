@@ -18,7 +18,14 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
         if (attribute.isEmpty()) {
             return "e";
         }
-        return String.join(",", attribute);
+        return max255Chars(String.join(",", attribute));
+    }
+
+    private String max255Chars(String join) {
+        if (join.length() > 255) {
+            return join.substring(0, 255);
+        }
+        return join;
     }
 
     @Override

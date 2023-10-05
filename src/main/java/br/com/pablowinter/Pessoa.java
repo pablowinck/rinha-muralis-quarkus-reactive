@@ -18,8 +18,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pessoas", indexes = {
-        @Index(name = "idx_pessoas_term", columnList = "term"),
-        @Index(name = "idx_pessoas_apelido", columnList = "apelido", unique = true)
+        @Index(name = "idx_pessoas_term", columnList = "term")
 })
 @Cacheable
 public class Pessoa extends PanacheEntityBase {
@@ -38,7 +37,7 @@ public class Pessoa extends PanacheEntityBase {
     private String nascimento;
 
     @Convert(converter = StringListConverter.class)
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "varchar(255)")
     private List<String> stack;
 
     @JsonIgnore
