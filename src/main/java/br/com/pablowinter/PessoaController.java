@@ -1,7 +1,5 @@
 package br.com.pablowinter;
 
-import java.util.List;
-
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.common.WithSession;
 import io.smallrye.mutiny.Multi;
@@ -9,13 +7,11 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.List;
 
 @Path("/")
 public class PessoaController {
@@ -58,7 +54,12 @@ public class PessoaController {
         memoryDatabase.save(pessoa);
         return Panache.withTransaction(pessoa::persist)
                 .replaceWith(Response.ok().status(201)
-                        .header("Location", "/pessoas/" + pessoa.getId()).build());
+                        .header("Location", "/pessoas/" + pessoa.getId()).build())
+                .onFailure().recoverWithItem(error -> {
+                    if (error.getMessage().contains("apelido"))
+                        return Response.status(422).build();
+                    return Response.status(400).build();
+                });
     }
 
     private boolean fieldIsUndefinedOrNull(JsonObject jsonObject, String field) {

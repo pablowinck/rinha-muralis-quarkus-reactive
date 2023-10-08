@@ -1,21 +1,13 @@
 package br.com.pablowinter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import jakarta.persistence.*;
+
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
 
 
 @Entity
@@ -44,18 +36,18 @@ public class Pessoa extends PanacheEntityBase {
     private List<String> stack;
 
     @JsonIgnore
-    @Column(columnDefinition = "varchar(255)")
+    @Column(columnDefinition = "text")
     private String term;
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public void prepareToPersist() {
         this.id = UUID.randomUUID().toString();
-        this.term = this.nome + this.apelido;
-        if (this.stack != null) this.term += String.join("", this.stack);
-        if (term.length() >= 255) term = term.substring(0, 254);
+        this.term = this.nome + "_" + this.apelido + "_";
+        if (this.stack != null) this.term += String.join("_", this.stack);
+//        if (term.length() >= 255) term = term.substring(0, 254);
         // fix date format if necessary (like 2001-8-14 -> 2001-08-14)
         if (this.nascimento.length() < 10) {
             String[] split = this.nascimento.split("-");
