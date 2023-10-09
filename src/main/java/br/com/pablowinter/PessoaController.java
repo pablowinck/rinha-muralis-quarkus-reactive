@@ -49,17 +49,17 @@ public class PessoaController {
             return Uni.createFrom().item(Response.status(400).build());
         if (pessoa.isUnprossessableEntity())
             return Uni.createFrom().item(Response.status(422).build());
-        return Pessoa.find("apelido", pessoa.getApelido()).count()
-                .onItem().ifNotNull().transformToUni(count -> {
-                    if (count > 0)
-                        return Uni.createFrom().item(Response.status(422).build());
-                    pessoa.prepareToPersist();
-                    return memoryDatabase.save(pessoa)
-                            .onItem()
-                            .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
-                                    .replaceWith(Response.ok().status(201)
-                                            .header("Location", "/pessoas/" + pessoa.getId()).build()));
-                });
+        pessoa.prepareToPersist();
+        return memoryDatabase.save(pessoa)
+                .onItem()
+                .transformToUni(tuple -> Panache.withTransaction(pessoa::persist)
+                        .replaceWith(Response.ok().status(201)
+                                .header("Location", "/pessoas/" + pessoa.getId()).build())
+                        .onFailure().recoverWithItem(error -> {
+                            if (error.getMessage().contains("apelido"))
+                                return Response.status(422).build();
+                            return Response.status(400).build();
+                        }));
     }
 
     private boolean fieldIsUndefinedOrNull(JsonObject jsonObject, String field) {

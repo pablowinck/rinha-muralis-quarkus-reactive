@@ -16,8 +16,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.35"
-          memory: 650M
+          cpus: "0.225"
+          memory: 500M
 
   api2:
     <<: *api1
@@ -40,8 +40,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
-          memory: 500M
+          cpus: "0.10"
+          memory: 200M
 
   db: # Banco de dados
     image: pablowinck/custom-postgres:1.2
@@ -61,8 +61,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.7"
-          memory: "1.0GB"
+          cpus: "0.90"
+          memory: "1.650GB"
 
 
   redis:
@@ -73,7 +73,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
-          memory: 200M
+          cpus: "0.05"
+          memory: 150M
 ## 1.5 CPU
 ## 3 GB
